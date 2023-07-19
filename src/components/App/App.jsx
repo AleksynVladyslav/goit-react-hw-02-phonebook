@@ -1,5 +1,9 @@
 import React, { Component } from 'react';
 import shortid from 'shortid';
+import css from './App.module.css';
+import ContactForm from 'components/ContactForm/ContactForm';
+import Filter from 'components/Filter/Filter';
+import ContactList from 'components/ContactList/ContactList';
 
 class App extends Component {
   state = {
@@ -9,15 +13,26 @@ class App extends Component {
       { id: 'id-3', name: 'Eden Clements', number: '645-17-79' },
       { id: 'id-4', name: 'Annie Copeland', number: '227-91-26' },
     ],
-    name: '',
-    number: '',
+    filter: '',
   };
 
-  onAddContact = event => {
-    event.preventDefault();
-    const { name, number } = this.state;
+  onFilterChange = event => {
+    this.setState({ filter: event.currentTarget.value });
+  };
 
-    if (name.trim() !== '' && number.trim() !== '') {
+  deleteContact = contactId => {
+    this.setState(prevState => ({
+      contacts: prevState.contacts.filter(contact => contact.id !== contactId),
+    }));
+  };
+
+  addContact = (name, number) => {
+    const { contacts } = this.state;
+    if (contacts.some(contact => contact.name === name)) {
+      return alert(`${name} is already in contacts`);
+    }
+
+    if (name !== '' && number !== '') {
       const newContact = {
         id: shortid.generate(),
         name: name.trim(),
@@ -26,61 +41,29 @@ class App extends Component {
 
       this.setState(prevState => ({
         contacts: [...prevState.contacts, newContact],
-        name: '',
-        number: '',
       }));
     }
   };
 
-  onNameChange = event => {
-    this.setState({ name: event.target.value });
-  };
-
-  onNumberChange = event => {
-    this.setState({ number: event.target.value });
-  };
-
   render() {
-    const { contacts, name, number } = this.state;
+    const { contacts, filter } = this.state;
+
+    const normalizedFilter = filter.toLowerCase();
+    const visibleContacts = contacts.filter(contact =>
+      contact.name.toLowerCase().includes(normalizedFilter)
+    );
 
     return (
-      <div>
-        <h2>Phonebook</h2>
-        <form onSubmit={this.onAddContact}>
-          <label>
-            Name
-            <input
-              type="text"
-              name="name"
-              pattern="^[a-zA-Zа-яА-Я]+(([' -][a-zA-Zа-яА-Я ])?[a-zA-Zа-яА-Я]*)*$"
-              title="Name may contain only letters, apostrophe, dash and spaces. For example Adrian, Jacob Mercer, Charles de Batz de Castelmore d'Artagnan"
-              required
-              value={name}
-              onChange={this.onNameChange}
-            />
-          </label>
-          <label>
-            Number{' '}
-            <input
-              type="tel"
-              name="number"
-              pattern="\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}"
-              title="Phone number must be digits and can contain spaces, dashes, parentheses and can start with +"
-              required
-              value={number}
-              onChange={this.onNumberChange}
-            />
-          </label>
-          <button type="submit">Add Contact</button>
-        </form>
-        <h2>Contacts</h2>
-        <ul>
-          {contacts.map(contact => (
-            <li key={contact.id}>
-              {contact.name}: {contact.number}
-            </li>
-          ))}
-        </ul>
+      <div className={css.wrapper}>
+        <h1 className={css.title}>Phonebook</h1>
+
+        <ContactForm contacts={contacts} addContact={this.addContact} />
+        <h2 className={css.title}>Contacts</h2>
+        <Filter onFilterChange={this.onFilterChange} />
+        <ContactList
+          contacts={visibleContacts}
+          deleteContacts={this.deleteContact}
+        />
       </div>
     );
   }
