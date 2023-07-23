@@ -32,20 +32,18 @@ class App extends Component {
       return alert(`${name} is already in contacts`);
     }
 
-    if (name !== '' && number !== '') {
-      const newContact = {
-        id: shortid.generate(),
-        name: name.trim(),
-        number: number,
-      };
+    const newContact = {
+      id: shortid.generate(),
+      name: name.trim(),
+      number: number,
+    };
 
-      this.setState(prevState => ({
-        contacts: [...prevState.contacts, newContact],
-      }));
-    }
+    this.setState(prevState => ({
+      contacts: [...prevState.contacts, newContact],
+    }));
   };
 
-  render() {
+  filterAddContacts = () => {
     const { contacts, filter } = this.state;
 
     const normalizedFilter = filter.toLowerCase();
@@ -53,15 +51,19 @@ class App extends Component {
       contact.name.toLowerCase().includes(normalizedFilter)
     );
 
+    return visibleContacts;
+  };
+
+  render() {
     return (
       <div className={css.wrapper}>
         <h1 className={css.title}>Phonebook</h1>
 
-        <ContactForm contacts={contacts} addContact={this.addContact} />
+        <ContactForm contacts={this.contacts} addContact={this.addContact} />
         <h2 className={css.title}>Contacts</h2>
         <Filter onFilterChange={this.onFilterChange} />
         <ContactList
-          contacts={visibleContacts}
+          contacts={this.filterAddContacts()}
           deleteContacts={this.deleteContact}
         />
       </div>
